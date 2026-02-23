@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ultimate AI Stack | LM Studio + MCP + Agents</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0a0a0f;
+  --bg2: #12121a;
+  --bg3: #1a1a2e;
+  --surface: rgba(255,255,255,0.03);
+  --surface2: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.08);
+  --text: #e0e0e8;
+  --text-dim: #8888a0;
+  --accent: #6c63ff;
+  --accent2: #00d4aa;
+  --accent3: #ff6b6b;
+  --accent4: #ffa726;
+  --accent5: #42a5f5;
+  --glow: 0 0 30px rgba(108,99,255,0.3);
+  --glow2: 0 0 30px rgba(0,212,170,0.3);
+  --radius: 16px;
+  --radius-sm: 8px;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--accent); color: #fff; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+a { color: var(--accent2); text-decoration: none; transition: var(--transition); }
+a:hover { color: #fff; text-shadow: var(--glow2); }
+
+/* ===== PARTICLE CANVAS ===== */
+#particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+/* ===== PROGRESS BAR ===== */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px; z-index: 9999;
+  background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent4));
+  transition: width 0.1s linear; width: 0%;
+  box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent2);
+}
+
+/* ===== FLOATING NAV ===== */
+.nav-float {
+  position: fixed; top: 50%; right: 20px; transform: translateY(-50%);
+  z-index: 1000; display: flex; flex-direction: column; gap: 8px;
+}
+.nav-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--surface2); border: 2px solid var(--border);
+  cursor: pointer; transition: var(--transition); position: relative;
+}
+.nav-dot:hover, .nav-dot.active {
+  background: var(--accent); border-color: var(--accent);
+  box-shadow: var(--glow); transform: scale(1.3);
+}
+.nav-dot .nav-label {
+  position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+  background: var(--bg3); color: var(--text); padding: 4px 12px;
+  border-radius: var(--radius-sm); font-size: 0.75rem; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: var(--transition);
+  border: 1px solid var(--border);
+}
+.nav-dot:hover .nav-label { opacity: 1; }
+
+/* ===== LAYOUT ===== */
+.container {
+  max-width: 1200px; margin: 0 auto; padding: 0 24px;
+  position: relative; z-index: 1;
+}
+@media (min-width: 2000px) { .container { max-width: 1600px; } }
+@media (min-width: 2560px) { .container { max-width: 1920px; } }
+
+/* ===== HERO ===== */
+.hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+  position: relative; padding: 40px 24px;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 8px 20px; border-radius: 100px; font-size: 0.85rem;
+  color: var(--accent2); margin-bottom: 32px;
+  animation: fadeSlideUp 0.8s ease both 0.2s;
+}
+.hero-badge .pulse {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent2); animation: pulse 2s infinite;
+}
+.hero h1 {
+  font-size: clamp(2.5rem, 7vw, 6rem); font-weight: 800;
+  line-height: 1.05; margin-bottom: 24px;
+  animation: fadeSlideUp 0.8s ease both 0.4s;
+}
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent4));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-size: 200% 200%; animation: gradientShift 4s ease infinite;
+}
+.hero .subtitle {
+  font-size: clamp(1rem, 2vw, 1.35rem); color: var(--text-dim);
+  max-width: 700px; margin-bottom: 48px;
+  animation: fadeSlideUp 0.8s ease both 0.6s;
+}
+.hero-chips {
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+  margin-bottom: 48px; animation: fadeSlideUp 0.8s ease both 0.8s;
+}
+.chip {
+  padding: 8px 18px; border-radius: 100px; font-size: 0.85rem;
+  font-weight: 600; border: 1px solid; cursor: default;
+  transition: var(--transition);
+}
+.chip:hover { transform: translateY(-2px); }
+.chip--purple { background: rgba(108,99,255,0.1); border-color: rgba(108,99,255,0.3); color: var(--accent); }
+.chip--green { background: rgba(0,212,170,0.1); border-color: rgba(0,212,170,0.3); color: var(--accent2); }
+.chip--orange { background: rgba(255,167,38,0.1); border-color: rgba(255,167,38,0.3); color: var(--accent4); }
+.chip--red { background: rgba(255,107,107,0.1); border-color: rgba(255,107,107,0.3); color: var(--accent3); }
+.chip--blue { background: rgba(66,165,245,0.1); border-color: rgba(66,165,245,0.3); color: var(--accent5); }
+
+.scroll-indicator {
+  animation: fadeSlideUp 0.8s ease both 1s;
+  position: absolute; bottom: 40px;
+}
+.scroll-arrow {
+  width: 24px; height: 24px; border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent); transform: rotate(45deg);
+  animation: bounce 2s infinite;
+}
+
+/* ===== SECTIONS ===== */
+section { padding: 100px 0; position: relative; }
+.section-header {
+  text-align: center; margin-bottom: 64px;
+}
+.section-number {
+  font-size: 0.85rem; font-weight: 700; color: var(--accent);
+  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+}
+.section-number::before, .section-number::after {
+  content: ''; width: 40px; height: 1px; background: var(--accent); opacity: 0.4;
+}
+.section-title {
+  font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800;
+  margin-bottom: 16px; line-height: 1.2;
+}
+.section-desc {
+  font-size: 1.1rem; color: var(--text-dim); max-width: 600px; margin: 0 auto;
+}
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 32px; position: relative;
+  overflow: hidden; transition: var(--transition);
+}
+.card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(108,99,255,0.06), transparent 40%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.card:hover::before { opacity: 1; }
+.card:hover {
+  border-color: rgba(108,99,255,0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+/* ===== GRID LAYOUTS ===== */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+@media (max-width: 1024px) {
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ===== ICON BADGES ===== */
+.icon-badge {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; margin-bottom: 20px;
+  background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(108,99,255,0.05));
+  border: 1px solid rgba(108,99,255,0.2);
+}
+.icon-badge--green {
+  background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,212,170,0.05));
+  border-color: rgba(0,212,170,0.2);
+}
+.icon-badge--orange {
+  background: linear-gradient(135deg, rgba(255,167,38,0.15), rgba(255,167,38,0.05));
+  border-color: rgba(255,167,38,0.2);
+}
+.icon-badge--red {
+  background: linear-gradient(135deg, rgba(255,107,107,0.15), rgba(255,107,107,0.05));
+  border-color: rgba(255,107,107,0.2);
+}
+.icon-badge--blue {
+  background: linear-gradient(135deg, rgba(66,165,245,0.15), rgba(66,165,245,0.05));
+  border-color: rgba(66,165,245,0.2);
+}
+
+.card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 12px; }
+.card p { color: var(--text-dim); font-size: 0.95rem; }
+
+/* ===== TABLE OF CONTENTS ===== */
+.toc-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px; margin-top: 32px;
+}
+.toc-item {
+  display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer;
+  transition: var(--transition); text-decoration: none; color: var(--text);
+}
+.toc-item:hover {
+  border-color: var(--accent); background: var(--surface2);
+  transform: translateX(6px); color: #fff;
+}
+.toc-num {
+  font-size: 1.5rem; font-weight: 800; color: var(--accent);
+  min-width: 40px; text-align: center;
+}
+.toc-label { font-weight: 600; font-size: 0.95rem; }
+
+/* ===== HARDWARE / SPECS ===== */
+.spec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.spec-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 28px; position: relative; overflow: hidden;
+}
+.spec-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.spec-card--desktop::after { background: linear-gradient(90deg, var(--accent), var(--accent5)); }
+.spec-card--macbook::after { background: linear-gradient(90deg, var(--accent2), var(--accent4)); }
+.spec-card h4 {
+  font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.spec-row {
+  display: flex; justify-content: space-between; padding: 10px 0;
+  border-bottom: 1px solid var(--border); font-size: 0.9rem;
+}
+.spec-row:last-child { border-bottom: none; }
+.spec-label { color: var(--text-dim); }
+.spec-value { font-weight: 600; color: var(--text); }
+
+/* ===== CONCEPT EXPLAINERS ===== */
+.concept-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  transition: var(--transition);
+}
+.concept-header {
+  padding: 20px 24px; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  font-weight: 700; font-size: 1.05rem;
+  transition: var(--transition);
+}
+.concept-header:hover { background: var(--surface2); }
+.concept-arrow {
+  transition: transform 0.3s; font-size: 1.2rem; color: var(--accent);
+}
+.concept-card.open .concept-arrow { transform: rotate(180deg); }
+.concept-body {
+  max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1);
+  padding: 0 24px;
+}
+.concept-card.open .concept-body { max-height: 600px; padding: 0 24px 24px; }
+.concept-body p { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 12px; }
+.concept-highlight {
+  background: rgba(108,99,255,0.08); border-left: 3px solid var(--accent);
+  padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0;
+  font-size: 0.9rem;
+}
+
+/* ===== MODEL COMPARISON ===== */
+.model-table-wrap {
+  overflow-x: auto; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--surface);
+}
+.model-table {
+  width: 100%; border-collapse: collapse; font-size: 0.9rem;
+}
+.model-table th {
+  padding: 16px 20px; text-align: left; font-weight: 700;
+  background: var(--surface2); border-bottom: 1px solid var(--border);
+  color: var(--accent); font-size: 0.8rem; text-transform: uppercase;
+  letter-spacing: 1px; position: sticky; top: 0;
+}
+.model-table td {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+}
+.model-table tr:last-child td { border-bottom: none; }
+.model-table tr:hover td { background: var(--surface2); }
+.model-table .badge {
+  display: inline-block; padding: 3px 10px; border-radius: 100px;
+  font-size: 0.75rem; font-weight: 600;
+}
+.badge--moe { background: rgba(0,212,170,0.15); color: var(--accent2); }
+.badge--dense { background: rgba(255,167,38,0.15); color: var(--accent4); }
+.badge--star { background: rgba(108,99,255,0.15); color: var(--accent); }
+
+/* ===== ARCHITECTURE DIAGRAM ===== */
+.arch-diagram {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 40px; margin: 40px 0;
+  position: relative; overflow: hidden;
+}
+.arch-layers {
+  display: flex; flex-direction: column; gap: 24px; align-items: center;
+}
+.arch-layer {
+  width: 100%; max-width: 800px; padding: 20px 28px;
+  border-radius: var(--radius-sm); text-align: center;
+  font-weight: 600; font-size: 0.95rem;
+  position: relative; transition: var(--transition);
+  cursor: default;
+}
+.arch-layer:hover { transform: scale(1.02); }
+.arch-layer--you {
+  background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(108,99,255,0.05));
+  border: 1px solid rgba(108,99,255,0.3);
+}
+.arch-layer--orch {
+  background: linear-gradient(135deg, rgba(0,212,170,0.2), rgba(0,212,170,0.05));
+  border: 1px solid rgba(0,212,170,0.3);
+}
+.arch-layer--mcp {
+  background: linear-gradient(135deg, rgba(255,167,38,0.2), rgba(255,167,38,0.05));
+  border: 1px solid rgba(255,167,38,0.3);
+}
+.arch-layer--agents {
+  background: linear-gradient(135deg, rgba(66,165,245,0.2), rgba(66,165,245,0.05));
+  border: 1px solid rgba(66,165,245,0.3);
+}
+.arch-layer--cloud {
+  background: linear-gradient(135deg, rgba(255,107,107,0.2), rgba(255,107,107,0.05));
+  border: 1px solid rgba(255,107,107,0.3);
+}
+.arch-connector {
+  width: 2px; height: 20px;
+  background: linear-gradient(180deg, var(--accent), transparent);
+  margin: 0 auto;
+}
+.arch-sub {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  margin-top: 10px;
+}
+.arch-sub-item {
+  padding: 4px 12px; background: rgba(255,255,255,0.05);
+  border-radius: 100px; font-size: 0.8rem; font-weight: 500;
+  color: var(--text-dim);
+}
+
+/* ===== CODE BLOCKS ===== */
+.code-block {
+  background: #0d1117; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); overflow: hidden; margin: 20px 0;
+}
+.code-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px; background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border); font-size: 0.8rem;
+}
+.code-lang { color: var(--accent2); font-weight: 600; }
+.code-copy {
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 4px 12px; border-radius: 4px; cursor: pointer;
+  font-size: 0.75rem; transition: var(--transition);
+}
+.code-copy:hover { border-color: var(--accent); color: var(--accent); }
+.code-copy.copied { border-color: var(--accent2); color: var(--accent2); }
+pre {
+  padding: 20px; overflow-x: auto; font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.875rem; line-height: 1.7; color: #e6edf3;
+}
+.code-kw { color: #ff7b72; }
+.code-str { color: #a5d6ff; }
+.code-cm { color: #8b949e; }
+.code-fn { color: #d2a8ff; }
+.code-num { color: #79c0ff; }
+.code-var { color: #ffa657; }
+
+/* ===== AGENT CARDS ===== */
+.agent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.agent-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; transition: var(--transition);
+  position: relative; overflow: hidden;
+}
+.agent-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.agent-card:nth-child(1)::before { background: var(--accent); }
+.agent-card:nth-child(2)::before { background: var(--accent2); }
+.agent-card:nth-child(3)::before { background: var(--accent5); }
+.agent-card:nth-child(4)::before { background: var(--accent4); }
+.agent-card:nth-child(5)::before { background: var(--accent3); }
+.agent-card:nth-child(6)::before { background: #ab47bc; }
+.agent-card:nth-child(7)::before { background: #26c6da; }
+.agent-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.12); }
+.agent-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; }
+.agent-model { font-size: 0.8rem; color: var(--accent2); margin-bottom: 12px; }
+.agent-desc { font-size: 0.9rem; color: var(--text-dim); margin-bottom: 12px; }
+.agent-cost {
+  display: inline-block; padding: 3px 10px; border-radius: 100px;
+  font-size: 0.75rem; font-weight: 600;
+}
+.agent-cost--free { background: rgba(0,212,170,0.15); color: var(--accent2); }
+.agent-cost--paid { background: rgba(255,167,38,0.15); color: var(--accent4); }
+
+/* ===== TIMELINE ===== */
+.timeline { position: relative; padding-left: 40px; }
+.timeline::before {
+  content: ''; position: absolute; left: 15px; top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(180deg, var(--accent), var(--accent2), var(--accent4));
+}
+.timeline-item { position: relative; margin-bottom: 32px; }
+.timeline-dot {
+  position: absolute; left: -33px; top: 4px; width: 12px; height: 12px;
+  border-radius: 50%; border: 2px solid var(--accent);
+  background: var(--bg); z-index: 1;
+}
+.timeline-item:nth-child(even) .timeline-dot { border-color: var(--accent2); }
+.timeline-content {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+}
+.timeline-step {
+  font-size: 0.8rem; color: var(--accent); font-weight: 700;
+  letter-spacing: 1px; margin-bottom: 6px;
+}
+.timeline-title { font-weight: 700; margin-bottom: 8px; }
+.timeline-desc { font-size: 0.9rem; color: var(--text-dim); }
+
+/* ===== QUANT TABLE ===== */
+.quant-bar {
+  height: 8px; border-radius: 4px; background: var(--surface2);
+  overflow: hidden; margin-top: 8px;
+}
+.quant-fill {
+  height: 100%; border-radius: 4px; transition: width 1.5s ease;
+}
+
+/* ===== TABS ===== */
+.tabs { margin: 40px 0; }
+.tab-header {
+  display: flex; gap: 4px; margin-bottom: 24px; overflow-x: auto;
+  border-bottom: 1px solid var(--border); padding-bottom: 0;
+}
+.tab-btn {
+  padding: 12px 24px; background: none; border: none;
+  color: var(--text-dim); font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; position: relative; transition: var(--transition);
+  white-space: nowrap; border-bottom: 2px solid transparent;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-panel { display: none; animation: fadeIn 0.4s ease; }
+.tab-panel.active { display: block; }
+
+/* ===== CALLOUT BOXES ===== */
+.callout {
+  padding: 20px 24px; border-radius: var(--radius-sm);
+  margin: 20px 0; border-left: 4px solid;
+  font-size: 0.95rem;
+}
+.callout--tip {
+  background: rgba(0,212,170,0.06); border-color: var(--accent2); color: var(--text);
+}
+.callout--warn {
+  background: rgba(255,167,38,0.06); border-color: var(--accent4);
+}
+.callout--danger {
+  background: rgba(255,107,107,0.06); border-color: var(--accent3);
+}
+.callout--info {
+  background: rgba(108,99,255,0.06); border-color: var(--accent);
+}
+.callout strong { display: block; margin-bottom: 6px; }
+
+/* ===== FLOW DIAGRAM ===== */
+.flow-row {
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 12px; margin: 16px 0;
+}
+.flow-box {
+  padding: 10px 20px; border-radius: var(--radius-sm);
+  background: var(--surface2); border: 1px solid var(--border);
+  font-size: 0.85rem; font-weight: 600; text-align: center;
+  transition: var(--transition); min-width: 120px;
+}
+.flow-box:hover { border-color: var(--accent); transform: scale(1.05); }
+.flow-arrow { color: var(--accent); font-size: 1.2rem; }
+
+/* ===== ANIMATED REVEAL ===== */
+.reveal {
+  opacity: 0; transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-left {
+  opacity: 0; transform: translateX(-40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+.reveal-right {
+  opacity: 0; transform: translateX(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+.reveal-scale {
+  opacity: 0; transform: scale(0.9);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+/* staggered children */
+.stagger > * { transition-delay: calc(var(--i, 0) * 0.1s); }
+
+/* ===== STAT COUNTER ===== */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin: 48px 0; }
+.stat-card { text-align: center; }
+.stat-num {
+  font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.stat-label { font-size: 0.85rem; color: var(--text-dim); margin-top: 4px; }
+@media (max-width: 640px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== INTERACTIVE SWITCH ===== */
+.switch-group {
+  display: flex; gap: 8px; background: var(--surface);
+  padding: 4px; border-radius: 100px; border: 1px solid var(--border);
+  width: fit-content; margin: 0 auto 32px;
+}
+.switch-btn {
+  padding: 8px 24px; border: none; background: none;
+  color: var(--text-dim); font-size: 0.9rem; font-weight: 600;
+  border-radius: 100px; cursor: pointer; transition: var(--transition);
+}
+.switch-btn.active { background: var(--accent); color: #fff; }
+
+/* ===== MCP SERVER LIST ===== */
+.mcp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+.mcp-item {
+  display: flex; align-items: flex-start; gap: 14px; padding: 18px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); transition: var(--transition);
+}
+.mcp-item:hover { border-color: var(--accent); transform: translateY(-2px); }
+.mcp-icon {
+  font-size: 1.5rem; min-width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+}
+.mcp-name { font-weight: 700; font-size: 0.95rem; }
+.mcp-desc { font-size: 0.8rem; color: var(--text-dim); margin-top: 2px; }
+
+/* ===== FOOTER ===== */
+footer {
+  padding: 60px 0 40px; border-top: 1px solid var(--border);
+  text-align: center; color: var(--text-dim); font-size: 0.85rem;
+}
+footer .footer-logo {
+  font-size: 1.5rem; font-weight: 800; margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: rotate(45deg) translateY(0); }
+  40% { transform: rotate(45deg) translateY(-10px); }
+  60% { transform: rotate(45deg) translateY(-5px); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(108,99,255,0.3); }
+  50% { box-shadow: 0 0 20px rgba(108,99,255,0.6), 0 0 40px rgba(108,99,255,0.2); }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .nav-float { display: none; }
+  section { padding: 60px 0; }
+  .container { padding: 0 16px; }
+  .hero h1 { font-size: 2.2rem; }
+  .arch-diagram { padding: 20px; }
+  .tab-header { gap: 0; }
+  .tab-btn { padding: 10px 16px; font-size: 0.85rem; }
+}
+@media (min-width: 2000px) {
+  html { font-size: 18px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+}
+@media (min-width: 2560px) {
+  html { font-size: 20px; }
+  .agent-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ===== BACK TO TOP ===== */
+.back-top {
+  position: fixed; bottom: 30px; right: 30px; width: 48px; height: 48px;
+  border-radius: 50%; background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none; font-size: 1.2rem; z-index: 1000;
+  opacity: 0; transform: translateY(20px); transition: var(--transition);
+  box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+}
+.back-top.visible { opacity: 1; transform: translateY(0); }
+.back-top:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(108,99,255,0.6); }
+
+/* ===== GLOW DIVIDER ===== */
+.glow-divider {
+  height: 1px; border: none; margin: 0;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+  opacity: 0.4;
+}
+
+/* ===== SEARCH BAR ===== */
+.search-wrap {
+  max-width: 500px; margin: 0 auto 40px; position: relative;
+}
+.search-input {
+  width: 100%; padding: 14px 20px 14px 48px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; color: var(--text); font-size: 0.95rem;
+  outline: none; transition: var(--transition);
+}
+.search-input:focus { border-color: var(--accent); box-shadow: var(--glow); }
+.search-icon {
+  position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+  color: var(--text-dim); font-size: 1.1rem;
+}
+
+/* ===== QUICK-REF COMMAND ===== */
+.cmd-list { display: flex; flex-direction: column; gap: 8px; }
+.cmd-item {
+  display: flex; align-items: center; gap: 16px; padding: 12px 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); font-family: 'Cascadia Code', monospace;
+  font-size: 0.85rem; transition: var(--transition);
+}
+.cmd-item:hover { border-color: var(--accent); }
+.cmd-label {
+  font-family: 'Segoe UI', sans-serif; color: var(--text-dim);
+  font-size: 0.8rem; min-width: 140px;
+}
+
+/* ===== TOOLTIP ===== */
+[data-tooltip] {
+  position: relative; cursor: help;
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip); position: absolute; bottom: 100%;
+  left: 50%; transform: translateX(-50%) translateY(-4px);
+  background: var(--bg3); color: var(--text); padding: 6px 12px;
+  border-radius: 6px; font-size: 0.75rem; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: var(--transition);
+  border: 1px solid var(--border); z-index: 10;
+}
+[data-tooltip]:hover::after { opacity: 1; transform: translateX(-50%) translateY(-8px); }
+
+/* ===== INTERACTIVE ROUTING DEMO ===== */
+.routing-demo {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 32px; margin: 32px 0;
+  text-align: center;
+}
+.routing-input {
+  width: 100%; max-width: 500px; padding: 14px 20px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 0.95rem;
+  outline: none; transition: var(--transition); margin-bottom: 16px;
+}
+.routing-input:focus { border-color: var(--accent); }
+.routing-result {
+  padding: 16px; border-radius: var(--radius-sm);
+  background: var(--bg); border: 1px solid var(--border);
+  min-height: 60px; margin-top: 12px; text-align: left;
+  font-size: 0.9rem;
+}
+
+/* mobile hamburger toc */
+.mobile-toc-btn {
+  display: none; position: fixed; bottom: 30px; left: 30px;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--accent2); color: #fff; border: none;
+  font-size: 1.2rem; cursor: pointer; z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0,212,170,0.4);
+}
+@media (max-width: 768px) {
+  .mobile-toc-btn { display: flex; align-items: center; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div id="progress-bar"></div>
+
+<!-- Particle Background -->
+<canvas id="particles"></canvas>
+
+<!-- Floating Nav -->
+<nav class="nav-float" id="navFloat">
+  <div class="nav-dot" data-section="hero"><span class="nav-label">Home</span></div>
+  <div class="nav-dot" data-section="overview"><span class="nav-label">Overview</span></div>
+  <div class="nav-dot" data-section="concepts"><span class="nav-label">Concepts</span></div>
+  <div class="nav-dot" data-section="models"><span class="nav-label">Models</span></div>
+  <div class="nav-dot" data-section="lmstudio"><span class="nav-label">LM Studio</span></div>
+  <div class="nav-dot" data-section="mcp"><span class="nav-label">MCP</span></div>
+  <div class="nav-dot" data-section="agents"><span class="nav-label">Agents</span></div>
+  <div class="nav-dot" data-section="orchestration"><span class="nav-label">Orchestration</span></div>
+  <div class="nav-dot" data-section="briefing"><span class="nav-label">Briefing</span></div>
+  <div class="nav-dot" data-section="coding"><span class="nav-label">Coding</span></div>
+  <div class="nav-dot" data-section="security"><span class="nav-label">Security</span></div>
+  <div class="nav-dot" data-section="quickref"><span class="nav-label">Quick Ref</span></div>
+</nav>
+
+<!-- Back to Top -->
+<button class="back-top" id="backTop" aria-label="Back to top">&#8593;</button>
+
+<!-- Mobile TOC Button -->
+<button class="mobile-toc-btn" id="mobileTocBtn" aria-label="Table of contents">&#9776;</button>
+
+<!-- ==================== HERO ==================== -->
+<header class="hero" id="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="pulse"></span> Self-Hosted AI Stack &mdash; Feb 2026</div>
+    <h1>The <span class="gradient-text">Ultimate AI Stack</span></h1>
+    <p class="subtitle">
+      A unified guide combining the best practices from multiple AI sources. Local LLMs, MCP integrations, multi-agent orchestration, and proactive automation &mdash; all on your hardware.
+    </p>
+    <div class="hero-chips">
+      <span class="chip chip--purple">LM Studio</span>
+      <span class="chip chip--green">MCP Servers</span>
+      <span class="chip chip--orange">Agent Swarm</span>
+      <span class="chip chip--red">Claude Code</span>
+      <span class="chip chip--blue">n8n / LangGraph</span>
+    </div>
+    <div class="stat-grid reveal">
+      <div class="stat-card">
+        <div class="stat-num" data-count="30">0</div>
+        <div class="stat-label">Billion Parameters</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" data-count="7">0</div>
+        <div class="stat-label">Specialized Agents</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" data-count="8">0</div>
+        <div class="stat-label">MCP Servers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" data-count="42">0</div>
+        <div class="stat-label">Tokens/sec Local</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-indicator">
+    <div class="scroll-arrow"></div>
+  </div>
+</header>
+
+<!-- ==================== OVERVIEW ==================== -->
+<section id="overview">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">01 &mdash; Overview</div>
+      <h2 class="section-title">The Master Plan</h2>
+      <p class="section-desc">A production-ready AI stack built on local hardware, paid subscriptions, and open-source orchestration.</p>
+    </div>
+
+    <div class="grid-2 reveal" style="margin-bottom:48px">
+      <div>
+        <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:20px">What We're Building</h3>
+        <p style="color:var(--text-dim);margin-bottom:16px">A layered, hybrid AI system where a local 30B model serves as the always-on brain, routing tasks between free local inference and paid cloud APIs. MCP servers act as the universal nervous system connecting everything together.</p>
+        <p style="color:var(--text-dim)">The architecture is divided into five operational layers: local inference, MCP integration, agent orchestration, coding environment, and omni-channel interfaces.</p>
+      </div>
+      <div>
+        <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:20px">Why This Architecture</h3>
+        <ul style="color:var(--text-dim);list-style:none;display:flex;flex-direction:column;gap:10px">
+          <li>&#10003; 70-80% of tasks run locally for <strong style="color:var(--accent2)">free</strong></li>
+          <li>&#10003; Cloud APIs only used for tasks requiring frontier intelligence</li>
+          <li>&#10003; Your data stays <strong style="color:var(--accent2)">private</strong> on your hardware</li>
+          <li>&#10003; No vendor lock-in &mdash; MCP standardizes everything</li>
+          <li>&#10003; Proactive agents, not just reactive chatbots</li>
+          <li>&#10003; Fully self-hosted orchestration (no OpenClaw costs)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="text-align:center;font-size:1.2rem;margin-bottom:20px" class="reveal">Your Hardware</h3>
+    <div class="spec-grid reveal">
+      <div class="spec-card spec-card--desktop">
+        <h4>&#128187; Desktop (Primary)</h4>
+        <div class="spec-row"><span class="spec-label">GPU</span><span class="spec-value">NVIDIA RTX 5080</span></div>
+        <div class="spec-row"><span class="spec-label">VRAM</span><span class="spec-value">16 GB</span></div>
+        <div class="spec-row"><span class="spec-label">OS</span><span class="spec-value">WSL (Ubuntu) on Windows</span></div>
+        <div class="spec-row"><span class="spec-label">Role</span><span class="spec-value">Primary AI server &amp; agent host</span></div>
+      </div>
+      <div class="spec-card spec-card--macbook">
+        <h4>&#128187; MacBook (Mobile)</h4>
+        <div class="spec-row"><span class="spec-label">Chip</span><span class="spec-value">Apple M1 Pro</span></div>
+        <div class="spec-row"><span class="spec-label">Memory</span><span class="spec-value">32 GB Unified</span></div>
+        <div class="spec-row"><span class="spec-label">OS</span><span class="spec-value">macOS</span></div>
+        <div class="spec-row"><span class="spec-label">Role</span><span class="spec-value">Mobile assistant &amp; secondary</span></div>
+      </div>
+    </div>
+
+    <h3 style="text-align:center;font-size:1.2rem;margin:40px 0 20px" class="reveal">Your Subscriptions</h3>
+    <div class="model-table-wrap reveal">
+      <table class="model-table">
+        <thead><tr><th>Service</th><th>What It Gives You</th><th>Role in Stack</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Claude Pro</strong></td><td>Claude API, Claude Code, Codex</td><td>Deep reasoning, coding, architecture</td></tr>
+          <tr><td><strong>GPT Pro</strong></td><td>GPT-4 access, API credits</td><td>Research, web browsing, fallback</td></tr>
+          <tr><td><strong>Gemini Pro</strong></td><td>Gemini API, long context</td><td>Document analysis, research</td></tr>
+          <tr><td><strong>LM Studio</strong></td><td>Local model hosting, OpenAI-compatible API</td><td>Always-on brain, routing, free inference</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout--warn reveal" style="margin-top:24px">
+      <strong>&#9888; Subscription vs. API Billing</strong>
+      Consumer subscriptions (Claude Pro, ChatGPT Plus, Gemini Advanced) do NOT include API credits. API billing is always separate. Your local LM Studio handles the bulk of work for free, and cloud APIs are only triggered selectively.
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== KEY CONCEPTS ==================== -->
+<section id="concepts">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">02 &mdash; Foundations</div>
+      <h2 class="section-title">Key Concepts Explained</h2>
+      <p class="section-desc">The building blocks you need to understand before everything else clicks.</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:800px;margin:0 auto">
+      <!-- Tokens -->
+      <div class="concept-card reveal">
+        <div class="concept-header" onclick="toggleConcept(this)">
+          <span>&#127922; Tokens &mdash; The Fundamental Unit</span>
+          <span class="concept-arrow">&#9660;</span>
+        </div>
+        <div class="concept-body">
+          <p>Tokens are chunks of text that AI models process. They're not whole words &mdash; they're building blocks that can be as short as a single character or as long as a word.</p>
+          <div class="concept-highlight">
+            <strong>Rule of thumb:</strong> 1 token &asymp; &frac34; of a word. So 1,000 tokens &asymp; 750 words.
+          </div>
+          <p><strong>Context window</strong> is how many tokens the model can process at once &mdash; its working memory. A 32K context window means ~24,000 words of combined input + output.</p>
+          <p>More context = more VRAM consumed by the KV cache. Start at 32K and increase only if needed.</p>
+        </div>
+      </div>
+
+      <!-- KV Cache -->
+      <div class="concept-card reveal">
+        <div class="concept-header" onclick="toggleConcept(this)">
+          <span>&#128200; KV Cache &mdash; The Hidden Bottleneck</span>
+          <span class="concept-arrow">&#9660;</span>
+        </div>
+        <div class="concept-body">
+          <p>Auto-regressive generation requires LLMs to compute Keys and Values for each token to maintain context. Instead of recomputing everything each time, the KV cache stores these values for reuse.</p>
+          <p>The problem: KV cache grows <strong>linearly</strong> with context length and can consume gigabytes of VRAM. If it exceeds GPU memory, the system either crashes (OOM) or swaps to disk, degrading from dozens of tokens/sec to fractions.</p>
+          <div class="concept-highlight">
+            <strong>Practical fix:</strong> Even if a model supports 256K tokens, constrain context_length in LM Studio to 32,768 or 65,536 to stay stable on 16GB-32GB hardware.
+          </div>
+        </div>
+      </div>
+
+      <!-- Quantization -->
+      <div class="concept-card reveal">
+        <div class="concept-header" onclick="toggleConcept(this)">
+          <span>&#128230; Quantization &mdash; Making 30B Fit</span>
+          <span class="concept-arrow">&#9660;</span>
+        </div>
+        <div class="concept-body">
+          <p>Quantization is compression for AI models. It reduces the precision of model weights to make them smaller and faster, at the cost of some quality.</p>
+          <div class="model-table-wrap" style="margin:16px 0">
+            <table class="model-table">
+              <thead><tr><th>Quant</th><th>Quality</th><th>Size (30B)</th><th>When to Use</th></tr></thead>
+              <tbody>
+                <tr><td>Q8</td><td>Highest</td><td>~31 GB</td><td>Massive RAM available</td></tr>
+                <tr><td>Q5_K_M</td><td>Great</td><td>~21 GB</td><td>Model barely fits GPU</td></tr>
+                <tr><td><strong>Q4_K_M</strong></td><td><strong>Sweet spot</strong></td><td><strong>~18 GB</strong></td><td><strong>Best balance for most</strong></td></tr>
+                <tr><td>Q3_K_M</td><td>Noticeable loss</td><td>~14 GB</td><td>VRAM is very tight</td></tr>
+                <tr><td>MXFP4</td><td>Native</td><td>~13 GB</td><td>Purpose-built (GPT-OSS)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MoE -->
+      <div class="concept-card reveal">
+        <div class="concept-header" onclick="toggleConcept(this)">
+          <span>&#9889; Mixture of Experts (MoE) &mdash; Speed Hack</span>
+          <span class="concept-arrow">&#9660;</span>
+        </div>
+        <div class="concept-body">
+          <p>MoE is a paradigm shift: instead of activating all parameters for every token (dense), MoE selectively activates specialized subsets. A 30B model might only use 3B parameters at any moment.</p>
+          <div class="concept-highlight">
+            <strong>Why it matters:</strong> You get the intelligence of a large model with the speed and VRAM usage of a small one. Inactive weights sit in slower system RAM while active experts reside in GPU VRAM.
+          </div>
+          <p><strong>GPT-OSS 20B:</strong> 21B total, 3.6B active &bull; <strong>Qwen3-30B-A3B:</strong> 30.5B total, 3.3B active</p>
+          <p>MoE models also excel at context switching &mdash; vital for agents that pivot between code, accounting data, and conversation.</p>
+        </div>
+      </div>
+
+      <!-- MCP -->
+      <div class="concept-card reveal">
+        <div class="concept-header" onclick="toggleConcept(this)">
+          <span>&#128268; MCP (Model Context Protocol) &mdash; The Universal Adapter</span>
+          <span class="concept-arrow">&#9660;</span>
+        </div>
+        <div class="concept-body">
+          <p>MCP is the open standard that eliminates custom API wrappers. It standardizes how AI models connect to external data sources, tools, and workflows &mdash; like a universal "USB-C" for AI.</p>
+          <p><strong>Architecture:</strong> Host (LM Studio / Claude Code) &rarr; Client (translates intent to JSON-RPC) &rarr; Server (connects to actual data).</p>
+          <p><strong>Three primitives:</strong></p>
+          <ul style="margin-left:20px;color:var(--text-dim)">
+            <li><strong>Resources:</strong> Read-only context (files, schemas, docs)</li>
+            <li><strong>Tools:</strong> Executable functions (send email, query DB, create event)</li>
+            <li><strong>Prompts:</strong> Pre-defined instruction templates for consistent behavior</li>
+          </ul>
+          <div class="concept-highlight" style="margin-top:16px">
+            <strong>Without MCPs:</strong> AI can only chat in text.<br>
+            <strong>With MCPs:</strong> AI reads emails, posts to Discord, checks calendars, edits files, and takes real-world actions.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== MODEL SELECTION ==================== -->
+<section id="models">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">03 &mdash; Model Selection</div>
+      <h2 class="section-title">The 30B Model Roster</h2>
+      <p class="section-desc">Choosing the right models for assistant, coding, and agentic workflows.</p>
+    </div>
+
+    <div class="model-table-wrap reveal" style="margin-bottom:32px">
+      <table class="model-table">
+        <thead>
+          <tr><th>Model</th><th>Architecture</th><th>Context</th><th>Strengths</th><th>Use For</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>GPT-OSS 20B</strong> <span class="badge badge--star">Daily Driver</span></td>
+            <td>Dense (21B / 3.6B active)</td>
+            <td>128K</td>
+            <td>Native function calling, web browsing, structured outputs, configurable reasoning</td>
+            <td>Agent brain, routing, daily chat</td>
+          </tr>
+          <tr>
+            <td><strong>Qwen3-Coder-30B-A3B</strong></td>
+            <td><span class="badge badge--moe">MoE</span> 30.5B / 3.3B active</td>
+            <td>256K</td>
+            <td>Exceptional repo-level code understanding, reliable JSON tool calls</td>
+            <td>Local coding specialist</td>
+          </tr>
+          <tr>
+            <td><strong>GLM-4.7-Flash</strong></td>
+            <td><span class="badge badge--moe">MoE</span> 30B / 3B active</td>
+            <td>128K</td>
+            <td>UI generation, tool execution, SWE-bench performance</td>
+            <td>Alternative coding model</td>
+          </tr>
+          <tr>
+            <td><strong>Qwen3-30B-A3B</strong></td>
+            <td><span class="badge badge--moe">MoE</span> 30.5B / 3.3B active</td>
+            <td>131K (YaRN)</td>
+            <td>Balanced assistant + planning + light coding + tool calling</td>
+            <td>General purpose (MacBook)</td>
+          </tr>
+          <tr>
+            <td><strong>Nemotron-3-Nano</strong></td>
+            <td><span class="badge badge--moe">MoE</span> 30B / 3.5B active</td>
+            <td>1M</td>
+            <td>Extreme throughput, massive context window for logs/histories</td>
+            <td>Bulk data ingestion</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout--tip reveal">
+      <strong>&#128161; Multi-Model Strategy</strong>
+      You swap between models in LM Studio. GPT-OSS 20B is your default loaded model on the desktop. Switch to Qwen3-Coder for coding sessions. Run Qwen3-30B on the MacBook for mobile use. The "A3B" MoE pattern (30B total, ~3B active) is the sweet spot for fast, capable local inference.
+    </div>
+
+    <div class="grid-3 reveal" style="margin-top:32px">
+      <div class="card">
+        <div class="icon-badge">&#128187;</div>
+        <h3>Desktop Config</h3>
+        <p>GPT-OSS 20B @ MXFP4 &mdash; ~13.7GB/16GB VRAM. 999 GPU layers (fits entirely). ~42 t/s at 32K context.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge icon-badge--green">&#128296;</div>
+        <h3>Coding Config</h3>
+        <p>Qwen3-Coder-30B @ Q4_K_M &mdash; ~18GB, partial CPU offload. GPU offload ~80%. ~12-15 t/s.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge icon-badge--orange">&#128241;</div>
+        <h3>MacBook Config</h3>
+        <p>Qwen3-30B-A3B @ Q4_K_M &mdash; ~18GB/32GB unified. MLX engine. ~15-20 t/s.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== LM STUDIO SETUP ==================== -->
+<section id="lmstudio">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">04 &mdash; Foundation</div>
+      <h2 class="section-title">LM Studio Setup</h2>
+      <p class="section-desc">Your local AI runtime &mdash; always-on, zero-cost inference backbone.</p>
+    </div>
+
+    <div class="timeline reveal">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-step">STEP 1</div>
+          <div class="timeline-title">Download &amp; Install LM Studio</div>
+          <div class="timeline-desc">Get the latest version from lmstudio.ai. It supports Windows, macOS, and Linux.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-step">STEP 2</div>
+          <div class="timeline-title">Download GPT-OSS 20B</div>
+          <div class="timeline-desc">Open LM Studio, search "openai/gpt-oss-20b" and download the ~13GB MXFP4 version.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-step">STEP 3</div>
+          <div class="timeline-title">Load the Model</div>
+          <div class="timeline-desc">Click the model in the sidebar and hit "Load." Verify ~42 t/s in the status bar.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-step">STEP 4</div>
+          <div class="timeline-title">Enable Local API Server</div>
+          <div class="timeline-desc">Go to the Developer tab, toggle the local API server ON. It runs at <code>http://localhost:1234/v1</code> &mdash; this is your OpenAI-compatible endpoint.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-step">STEP 5</div>
+          <div class="timeline-title">Verify Everything Works</div>
+          <div class="timeline-desc">Open a chat in LM Studio and test. Then test the API endpoint from a script or curl.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout--info reveal" style="margin-top:32px">
+      <strong>&#128272; Why localhost:1234 Matters</strong>
+      This local API is the backbone of your entire system. Anything that can talk to the OpenAI API can now talk to your local model for free. MCPs, agents, scripts, your Discord bot &mdash; they all connect here. One URL, unlimited free inference.
+    </div>
+
+    <h3 style="margin:40px 0 20px;text-align:center" class="reveal">Recommended Settings</h3>
+    <div class="model-table-wrap reveal">
+      <table class="model-table">
+        <thead><tr><th>Setting</th><th>Value</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Context Length</td><td>32,768 (push to 60K)</td><td>Balances memory and capability</td></tr>
+          <tr><td>GPU Layers</td><td>999 (all on GPU)</td><td>GPT-OSS fits in 16GB</td></tr>
+          <tr><td>VRAM Usage</td><td>~13.7 GB</td><td>Leaves 2.3GB for KV cache</td></tr>
+          <tr><td>Reasoning Effort</td><td>Medium (default)</td><td>Low for routing, High for complex tasks</td></tr>
+          <tr><td>Temperature</td><td>0.3-0.5 (agents) / 0.7 (code)</td><td>Lower = more deterministic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-block reveal" style="margin-top:32px">
+      <div class="code-header">
+        <span class="code-lang">CLI</span>
+        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><span class="code-cm"># Download &amp; load your daily driver</span>
+<span class="code-fn">lms get</span> openai/gpt-oss-20b
+<span class="code-fn">lms load</span> openai/gpt-oss-20b
+
+<span class="code-cm"># Download the coding model</span>
+<span class="code-fn">lms get</span> lmstudio-community/Qwen3-Coder-30B-A3B-Instruct-GGUF
+
+<span class="code-cm"># Server management</span>
+<span class="code-fn">lms server start</span>
+<span class="code-fn">lms status</span>
+<span class="code-fn">lms server stop</span></pre>
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== MCP SETUP ==================== -->
+<section id="mcp">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">05 &mdash; Integration</div>
+      <h2 class="section-title">MCP Server Setup</h2>
+      <p class="section-desc">The nervous system that connects your AI to the real world.</p>
+    </div>
+
+    <div class="mcp-grid reveal">
+      <div class="mcp-item">
+        <div class="mcp-icon">&#128193;</div>
+        <div><div class="mcp-name">Filesystem</div><div class="mcp-desc">Read/write files on your machine. Agent access to project files and logs.</div></div>
+      </div>
+      <div class="mcp-item">
+        <div class="mcp-icon">&#128172;</div>
+        <div><div class="mcp-name">iMessage</div><div class="mcp-desc">Read and send iMessages. Auto-reply to texts with AI-generated responses.</div></div>
+      </div>
+      <div class="mcp-item">
+        <div class="mcp-icon">&#127918;</div>
+        <div><div class="mcp-name">Discord</div><div class="mcp-desc">Send/read messages via webhooks. Morning briefings and command interface.</div></div>
+      </div>
+      <div class="mcp-item">
+        <div class="mcp-icon">&#128025;</div>
+        <div><div class="mcp-name">GitHub</div><div class="mcp-desc">Interact with repos, PRs, issues. Code agent workflows and automation.</div></div>
+      </div>
+      <div class="mcp-item">
+        <div class="mcp-icon">&#127760;</div>
+        <div><div class="mcp-name">Browser / Web</div><div class="mcp-desc">Search and scrape the web. Research agent with Brave Search or Firecrawl.</div></div>
+      </div>
+      <div class="mcp-item">
+        <div class="mcp-icon">&#128197;</div>
+        <div><div class="mcp-name">Google Calendar</div><div class="mcp-desc">Read/write calendar events. Scheduling and daily briefings.</div></div>
+      </div>
+      <div class="mcp-item">
+        <div class="mcp-icon">&#9993;</div>
+        <div><div class="mcp-name">Gmail</div><div class="mcp-desc">Read and draft emails. Email summaries and auto-drafts.</div></div>
+      </div>
+      <div class="mcp-item">
+        <div class="mcp-icon">&#128451;</div>
+        <div><div class="mcp-name">SQLite / Database</div><div class="mcp-desc">Query databases. Accounting tools data access and web app backends.</div></div>
+      </div>
+    </div>
+
+    <div class="code-block reveal" style="margin-top:32px">
+      <div class="code-header">
+        <span class="code-lang">JSON &mdash; mcp.json</span>
+        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre>{
+  <span class="code-str">"filesystem"</span>: {
+    <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+    <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@anthropic/mcp-filesystem"</span>, <span class="code-str">"/home/your-user"</span>]
+  },
+  <span class="code-str">"github"</span>: {
+    <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+    <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@github/mcp-server"</span>]
+  },
+  <span class="code-str">"discord"</span>: {
+    <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+    <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"discord-mcp"</span>]
+  }
+}</pre>
+    </div>
+
+    <div class="callout callout--tip reveal">
+      <strong>&#128161; One Toolbox, Multiple Brains</strong>
+      MCP is designed so multiple clients can connect to the same servers. Configure once, use from LM Studio, Claude Code, and any custom agent. The flow: You ask a question &rarr; LM Studio calls the MCP server &rarr; MCP returns data &rarr; Model formats the response.
+    </div>
+
+    <h3 style="margin:40px 0 20px;text-align:center" class="reveal">Scaling Token Consumption</h3>
+    <div class="grid-2 reveal">
+      <div class="card">
+        <div class="icon-badge icon-badge--red">&#9888;</div>
+        <h3>The Problem</h3>
+        <p>If connected to 20 MCP servers, tool definitions alone can consume 15,000+ tokens before a single query is processed. This drains context and kills local model performance.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge icon-badge--green">&#10003;</div>
+        <h3>The Solution</h3>
+        <p>Use code execution for dynamic tool discovery. Give the agent a single Python sandbox tool, let it query available MCP schemas at runtime. Reduces token overhead by ~98%.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== AGENT ARCHITECTURE ==================== -->
+<section id="agents">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">06 &mdash; Agents</div>
+      <h2 class="section-title">Agent Architecture</h2>
+      <p class="section-desc">Specialized agents, each running on the best model for its task.</p>
+    </div>
+
+    <div class="agent-grid reveal stagger">
+      <div class="agent-card" style="--i:0">
+        <div class="agent-name">&#128300; Router</div>
+        <div class="agent-model">GPT-OSS 20B (Local)</div>
+        <div class="agent-desc">Triages all incoming tasks, decides local vs. cloud, selects the right agent and tools.</div>
+        <span class="agent-cost agent-cost--free">Free</span>
+      </div>
+      <div class="agent-card" style="--i:1">
+        <div class="agent-name">&#129504; Deep Thinker</div>
+        <div class="agent-model">Claude Pro API</div>
+        <div class="agent-desc">Complex reasoning, architecture decisions, multi-step analysis requiring frontier intelligence.</div>
+        <span class="agent-cost agent-cost--paid">Subscription</span>
+      </div>
+      <div class="agent-card" style="--i:2">
+        <div class="agent-name">&#128187; Coder</div>
+        <div class="agent-model">Claude Code + Codex</div>
+        <div class="agent-desc">Build and ship code. Complex refactoring, testing, PR creation, and async batch tasks.</div>
+        <span class="agent-cost agent-cost--paid">Subscription</span>
+      </div>
+      <div class="agent-card" style="--i:3">
+        <div class="agent-name">&#128270; Researcher</div>
+        <div class="agent-model">Gemini / GPT Pro</div>
+        <div class="agent-desc">Web search, document analysis, summarization, long-context research tasks.</div>
+        <span class="agent-cost agent-cost--paid">Subscription</span>
+      </div>
+      <div class="agent-card" style="--i:4">
+        <div class="agent-name">&#128172; Comms</div>
+        <div class="agent-model">GPT-OSS 20B (Local)</div>
+        <div class="agent-desc">iMessage auto-replies, email drafts, communication triage and response.</div>
+        <span class="agent-cost agent-cost--free">Free</span>
+      </div>
+      <div class="agent-card" style="--i:5">
+        <div class="agent-name">&#127749; Briefing Bot</div>
+        <div class="agent-model">GPT-OSS 20B (Local)</div>
+        <div class="agent-desc">Daily morning briefing aggregation, formatting, and Discord delivery.</div>
+        <span class="agent-cost agent-cost--free">Free</span>
+      </div>
+      <div class="agent-card" style="--i:6">
+        <div class="agent-name">&#128225; Social Media</div>
+        <div class="agent-model">GPT-OSS 20B (Local)</div>
+        <div class="agent-desc">Post scheduling, content creation, trend monitoring, audience engagement.</div>
+        <span class="agent-cost agent-cost--free">Free</span>
+      </div>
+    </div>
+
+    <div class="callout callout--info reveal" style="margin-top:32px">
+      <strong>&#128176; Smart Routing Saves Money</strong>
+      The Router agent running on your free local model handles 70-80% of all tasks. Only genuinely complex work gets forwarded to paid APIs. Your Claude/GPT/Gemini subscriptions last much longer.
+    </div>
+
+    <!-- Interactive Routing Demo -->
+    <div class="routing-demo reveal" style="margin-top:32px">
+      <h3 style="margin-bottom:8px">&#9889; Try the Router</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:16px">Type a task to see which agent would handle it:</p>
+      <input type="text" class="routing-input" id="routingInput" placeholder="e.g., 'summarize my emails' or 'refactor the auth module'">
+      <div class="routing-result" id="routingResult">
+        <span style="color:var(--text-dim)">Type a task above to see the routing decision...</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== ORCHESTRATION ==================== -->
+<section id="orchestration">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">07 &mdash; Orchestration</div>
+      <h2 class="section-title">Self-Hosted Orchestration</h2>
+      <p class="section-desc">n8n for visual workflows, LangGraph for code-driven multi-agent systems. No OpenClaw needed.</p>
+    </div>
+
+    <div class="tabs reveal">
+      <div class="tab-header">
+        <button class="tab-btn active" onclick="switchTab(event, 'tab-n8n')">n8n</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-langgraph')">LangGraph</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-compare')">Comparison</button>
+      </div>
+      <div id="tab-n8n" class="tab-panel active">
+        <div class="grid-2">
+          <div>
+            <h3 style="margin-bottom:12px">&#128736; n8n &mdash; Visual Automation</h3>
+            <p style="color:var(--text-dim);margin-bottom:12px">Enterprise-grade workflow orchestrator, self-hosted via Docker. Visual node-based interface for building complex, asynchronous AI pipelines.</p>
+            <ul style="color:var(--text-dim);list-style:none;display:flex;flex-direction:column;gap:8px;font-size:0.9rem">
+              <li>&#10003; Native LangChain integration for RAG pipelines</li>
+              <li>&#10003; Memory buffers for conversation history</li>
+              <li>&#10003; Queue Mode (Redis + PostgreSQL) for scaling</li>
+              <li>&#10003; Schedule triggers for cron-style automation</li>
+              <li>&#10003; Connect to LM Studio API directly</li>
+            </ul>
+          </div>
+          <div>
+            <h3 style="margin-bottom:12px">Best For</h3>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="flow-box">Morning briefing pipelines</div>
+              <div class="flow-box">Social media scheduling</div>
+              <div class="flow-box">Email triage workflows</div>
+              <div class="flow-box">Accounting data pipelines</div>
+              <div class="flow-box">Multi-API orchestration</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tab-langgraph" class="tab-panel">
+        <div class="grid-2">
+          <div>
+            <h3 style="margin-bottom:12px">&#128736; LangGraph &mdash; Code-Driven Agents</h3>
+            <p style="color:var(--text-dim);margin-bottom:12px">Python-based framework modeling agent behavior as a stateful graph. Nodes = actions, edges = logical flow. Supports cyclical reasoning and self-correction.</p>
+            <ul style="color:var(--text-dim);list-style:none;display:flex;flex-direction:column;gap:8px;font-size:0.9rem">
+              <li>&#10003; Reflection pattern for iterative improvement</li>
+              <li>&#10003; Multi-agent collaboration loops</li>
+              <li>&#10003; State management across complex workflows</li>
+              <li>&#10003; Integrate with LM Studio for local inference</li>
+              <li>&#10003; Ideal for self-correcting coding pipelines</li>
+            </ul>
+          </div>
+          <div>
+            <h3 style="margin-bottom:12px">Example: Self-Correcting Coder</h3>
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+              <div class="flow-box" style="border-color:var(--accent5)">Coder Agent writes update</div>
+              <div class="flow-arrow">&#8595;</div>
+              <div class="flow-box" style="border-color:var(--accent2)">Testing Agent runs code</div>
+              <div class="flow-arrow">&#8595;</div>
+              <div class="flow-box" style="border-color:var(--accent3)">Error? Loop back to Coder</div>
+              <div class="flow-arrow">&#8595;</div>
+              <div class="flow-box" style="border-color:var(--accent)">Pass? Deploy</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tab-compare" class="tab-panel">
+        <div class="model-table-wrap">
+          <table class="model-table">
+            <thead><tr><th>Feature</th><th>n8n</th><th>LangGraph</th></tr></thead>
+            <tbody>
+              <tr><td>Interface</td><td>Visual / Node-based</td><td>Code / Python</td></tr>
+              <tr><td>Best For</td><td>Linear/branching API workflows</td><td>Cyclical reasoning, self-correction</td></tr>
+              <tr><td>Scheduling</td><td>Built-in cron triggers</td><td>External (cron/systemd)</td></tr>
+              <tr><td>Scaling</td><td>Queue Mode (Redis)</td><td>Custom scaling</td></tr>
+              <tr><td>AI Integration</td><td>Native LangChain nodes</td><td>Native LLM integration</td></tr>
+              <tr><td>Deployment</td><td>Docker self-hosted</td><td>Python script/service</td></tr>
+              <tr><td>Learning Curve</td><td>Low (visual)</td><td>Medium (Python)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== MORNING BRIEFING ==================== -->
+<section id="briefing">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">08 &mdash; Proactive</div>
+      <h2 class="section-title">Morning Briefing System</h2>
+      <p class="section-desc">A proactive assistant that delivers a personalized briefing to Discord every morning.</p>
+    </div>
+
+    <div class="arch-diagram reveal">
+      <h3 style="text-align:center;margin-bottom:24px">Architecture Flow</h3>
+      <div class="arch-layers">
+        <div class="arch-layer arch-layer--you">
+          &#9200; WSL Cron Job (7:00 AM Daily)
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer arch-layer--agents">
+          &#128196; Python Script &mdash; Data Aggregation
+          <div class="arch-sub">
+            <span class="arch-sub-item">Gmail</span>
+            <span class="arch-sub-item">Calendar</span>
+            <span class="arch-sub-item">GitHub</span>
+            <span class="arch-sub-item">News</span>
+            <span class="arch-sub-item">System Health</span>
+            <span class="arch-sub-item">Accounting DB</span>
+          </div>
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer arch-layer--orch">
+          &#129504; LM Studio API (localhost:1234) &mdash; GPT-OSS 20B formats briefing
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer arch-layer--mcp">
+          &#127918; Discord Webhook &rarr; #morning-briefing channel
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2 reveal">
+      <div>
+        <h3 style="margin-bottom:12px">How Cron Jobs Work</h3>
+        <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:16px">None of the AI services have built-in scheduling. Cron jobs live on your machine and call the AI when it's time. The cron job is just a scheduler. The Python script is the glue between your schedule, data sources, and the AI.</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <button class="code-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="code-cm"># Open crontab editor</span>
+<span class="code-fn">crontab</span> -e
+
+<span class="code-cm"># Add this line (runs daily at 7:00 AM):</span>
+<span class="code-num">0 7 * * *</span> /usr/bin/python3 /home/manuel/scripts/morning_briefing.py</pre>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:12px">Briefing Categories</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="flow-box" style="text-align:left;min-width:auto">&#128680; <strong>Urgent Communications</strong> &mdash; High-priority emails &amp; messages</div>
+          <div class="flow-box" style="text-align:left;min-width:auto">&#128197; <strong>Daily Itinerary</strong> &mdash; Calendar events for the day</div>
+          <div class="flow-box" style="text-align:left;min-width:auto">&#128203; <strong>Task Priorities</strong> &mdash; GitHub PRs, issues, deadlines</div>
+          <div class="flow-box" style="text-align:left;min-width:auto">&#128200; <strong>System Health</strong> &mdash; Server status, Docker containers</div>
+          <div class="flow-box" style="text-align:left;min-width:auto">&#128240; <strong>News &amp; Trends</strong> &mdash; Relevant tech and market updates</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout--tip reveal" style="margin-top:24px">
+      <strong>&#128172; Interactive Discord Bot</strong>
+      Beyond the morning briefing, set up a Discord bot backed by your local model. Message it commands like "summarize my emails" or "what PRs need review." The interface is bidirectional &mdash; reply to the briefing and the agent takes action.
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== CODING ENVIRONMENT ==================== -->
+<section id="coding">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">09 &mdash; Development</div>
+      <h2 class="section-title">Coding Environment &amp; Hybrid Routing</h2>
+      <p class="section-desc">Claude Code, Aider, and Cline with local+cloud hybrid architecture.</p>
+    </div>
+
+    <div class="grid-2 reveal" style="margin-bottom:32px">
+      <div class="card">
+        <div class="icon-badge icon-badge--red">&#128296;</div>
+        <h3>Claude Code</h3>
+        <p>Command-line coding agent in your terminal. Attach MCPs (filesystem, GitHub, database) so it can browse your codebase, run tests, and push code. Use for complex refactoring and architecture decisions.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge icon-badge--blue">&#128640;</div>
+        <h3>Codex</h3>
+        <p>Async coding agent that works in the background. Queue up work items and let Codex build while you do other things. It creates PRs when done. Ideal for batch tasks like "add error handling to all endpoints."</p>
+      </div>
+    </div>
+
+    <h3 style="text-align:center;margin-bottom:20px" class="reveal">The Hybrid Routing Architecture</h3>
+    <div class="grid-2 reveal">
+      <div class="card" style="border-color:rgba(0,212,170,0.2)">
+        <h3 style="color:var(--accent2)">Phase 1: Local Discovery</h3>
+        <p>Use the local LM Studio model for lightweight, token-heavy exploration tasks: finding files, checking git history, grepping for functions, aggregating context. Saves API credits by keeping the noise local.</p>
+      </div>
+      <div class="card" style="border-color:rgba(108,99,255,0.2)">
+        <h3 style="color:var(--accent)">Phase 2: Cloud Synthesis</h3>
+        <p>Once the local agent has compiled the refined context, pass it to a frontier model (Claude Sonnet, GPT-4o) for final synthesis. Cloud tokens are spent exclusively on high-level reasoning.</p>
+      </div>
+    </div>
+
+    <div class="code-block reveal" style="margin-top:32px">
+      <div class="code-header">
+        <span class="code-lang">Bash &mdash; Connect Claude Code to Local LM Studio</span>
+        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><span class="code-cm"># Route Claude Code to your local LM Studio</span>
+<span class="code-kw">export</span> <span class="code-var">ANTHROPIC_BASE_URL</span>=<span class="code-str">http://localhost:1234</span>
+<span class="code-kw">export</span> <span class="code-var">ANTHROPIC_AUTH_TOKEN</span>=<span class="code-str">lmstudio</span>
+
+<span class="code-cm"># Now Claude Code uses your local model for free</span>
+<span class="code-cm"># Qwen3-Coder or GLM-4.7 can explore, read files,</span>
+<span class="code-cm"># and execute terminal commands through the agent</span></pre>
+    </div>
+
+    <div class="callout callout--warn reveal" style="margin-top:24px">
+      <strong>&#128161; Dream Workflow: Discord to Codex Pipeline</strong>
+      Describe a feature in Discord &rarr; Router agent picks it up &rarr; Routes to Codex &rarr; Codex builds async &rarr; GitHub PR notification when done. Hands-free development.
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== FULL ARCHITECTURE ==================== -->
+<section id="architecture" style="padding-top:60px">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">10 &mdash; Integration</div>
+      <h2 class="section-title">Full System Architecture</h2>
+      <p class="section-desc">How every piece connects into one unified ecosystem.</p>
+    </div>
+
+    <div class="arch-diagram reveal-scale">
+      <div class="arch-layers">
+        <div class="arch-layer arch-layer--you">
+          &#128100; YOU
+          <div class="arch-sub">
+            <span class="arch-sub-item">Discord</span>
+            <span class="arch-sub-item">iMessage</span>
+            <span class="arch-sub-item">Terminal</span>
+            <span class="arch-sub-item">Web Browser</span>
+          </div>
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer arch-layer--orch">
+          &#129504; ORCHESTRATOR &mdash; GPT-OSS 20B via LM Studio API
+        </div>
+        <div class="arch-connector"></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;width:100%;max-width:800px">
+          <div class="arch-layer arch-layer--agents" style="width:auto">
+            Simple Tasks<br><small style="color:var(--text-dim)">Local &mdash; FREE</small>
+          </div>
+          <div class="arch-layer arch-layer--cloud" style="width:auto">
+            Complex Tasks<br><small style="color:var(--text-dim)">Claude / GPT / Gemini</small>
+          </div>
+          <div class="arch-layer arch-layer--agents" style="width:auto">
+            Code Tasks<br><small style="color:var(--text-dim)">Claude Code / Codex</small>
+          </div>
+          <div class="arch-layer arch-layer--mcp" style="width:auto">
+            Scheduled Tasks<br><small style="color:var(--text-dim)">Cron &amp; n8n</small>
+          </div>
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer arch-layer--mcp">
+          &#128268; MCP Layer
+          <div class="arch-sub">
+            <span class="arch-sub-item">Discord</span>
+            <span class="arch-sub-item">iMessage</span>
+            <span class="arch-sub-item">GitHub</span>
+            <span class="arch-sub-item">Files</span>
+            <span class="arch-sub-item">Database</span>
+            <span class="arch-sub-item">Calendar</span>
+            <span class="arch-sub-item">Gmail</span>
+            <span class="arch-sub-item">Browser</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== SECURITY ==================== -->
+<section id="security">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">11 &mdash; Security</div>
+      <h2 class="section-title">Security &amp; Guardrails</h2>
+      <p class="section-desc">Permissions, secrets, audits &mdash; because always-on agents need safety by design.</p>
+    </div>
+
+    <div class="grid-3 reveal">
+      <div class="card">
+        <div class="icon-badge icon-badge--red">&#128274;</div>
+        <h3>Least Privilege</h3>
+        <p>Every MCP server gets the minimum permissions it needs. Filesystem access is scoped to allowlisted directories only. No blanket access.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge icon-badge--orange">&#128737;</div>
+        <h3>Compartmentalize</h3>
+        <p>High-risk MCPs (iMessage, financial data) run in isolated environments. Never give one agent access to everything.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge icon-badge--blue">&#128101;</div>
+        <h3>Human Approval</h3>
+        <p>High-impact actions (posting publicly, sending client messages, moving money) always require human confirmation first.</p>
+      </div>
+    </div>
+
+    <div class="callout callout--danger reveal" style="margin-top:24px">
+      <strong>&#9888; Critical Warnings</strong>
+      Never install MCP servers from untrusted sources. Keep servers updated (real CVEs exist, like the filesystem path validation bypass). For business data (accounting), local-only processing isn't just a preference &mdash; it's a compliance requirement.
+    </div>
+
+    <div class="grid-2 reveal" style="margin-top:24px">
+      <div class="card">
+        <h3>iMessage Safety</h3>
+        <p>A hallucination could send inappropriate messages to professional contacts. Enforce <strong>Strict Draft-Only Mode</strong>: agent formulates responses, stages them in Discord/Notion for human approval before sending.</p>
+      </div>
+      <div class="card">
+        <h3>Accounting Data</h3>
+        <p>Financial pipelines must keep the LLM out of arithmetic. Use local models for semantic extraction only. All math through deterministic Python/JavaScript. Full audit trail on every transaction.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="glow-divider">
+
+<!-- ==================== QUICK REFERENCE ==================== -->
+<section id="quickref">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-number">12 &mdash; Reference</div>
+      <h2 class="section-title">Quick Reference</h2>
+      <p class="section-desc">Commands, settings, and API snippets you'll use every day.</p>
+    </div>
+
+    <div class="tabs reveal">
+      <div class="tab-header">
+        <button class="tab-btn active" onclick="switchTab(event, 'ref-cli')">CLI Commands</button>
+        <button class="tab-btn" onclick="switchTab(event, 'ref-api')">API Test</button>
+        <button class="tab-btn" onclick="switchTab(event, 'ref-settings')">Settings</button>
+        <button class="tab-btn" onclick="switchTab(event, 'ref-urls')">Useful URLs</button>
+      </div>
+
+      <div id="ref-cli" class="tab-panel active">
+        <div class="cmd-list">
+          <div class="cmd-item"><span class="cmd-label">Download model</span><code>lms get openai/gpt-oss-20b</code></div>
+          <div class="cmd-item"><span class="cmd-label">Load model</span><code>lms load openai/gpt-oss-20b</code></div>
+          <div class="cmd-item"><span class="cmd-label">Unload model</span><code>lms unload</code></div>
+          <div class="cmd-item"><span class="cmd-label">Check status</span><code>lms status</code></div>
+          <div class="cmd-item"><span class="cmd-label">Start API server</span><code>lms server start</code></div>
+          <div class="cmd-item"><span class="cmd-label">Stop API server</span><code>lms server stop</code></div>
+        </div>
+      </div>
+
+      <div id="ref-api" class="tab-panel">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Python</span>
+            <button class="code-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="code-kw">from</span> openai <span class="code-kw">import</span> OpenAI
+
+client = OpenAI(
+    <span class="code-var">base_url</span>=<span class="code-str">"http://localhost:1234/v1"</span>,
+    <span class="code-var">api_key</span>=<span class="code-str">"not-needed"</span>
+)
+
+result = client.chat.completions.create(
+    <span class="code-var">model</span>=<span class="code-str">"openai/gpt-oss-20b"</span>,
+    <span class="code-var">messages</span>=[{<span class="code-str">"role"</span>: <span class="code-str">"user"</span>, <span class="code-str">"content"</span>: <span class="code-str">"Hello!"</span>}]
+)
+<span class="code-fn">print</span>(result.choices[<span class="code-num">0</span>].message.content)</pre>
+        </div>
+      </div>
+
+      <div id="ref-settings" class="tab-panel">
+        <div class="model-table-wrap">
+          <table class="model-table">
+            <thead><tr><th>Setting</th><th>What It Does</th><th>Recommended</th></tr></thead>
+            <tbody>
+              <tr><td>Context Length</td><td>Working memory size</td><td>32,768 tokens (start here)</td></tr>
+              <tr><td>GPU Layers</td><td>How much on GPU</td><td>999 for GPT-OSS, 60-70 for Qwen3-Coder</td></tr>
+              <tr><td>Temperature</td><td>Creativity level</td><td>0.3-0.5 agents, 0.7 code, 0.8+ creative</td></tr>
+              <tr><td>Top P</td><td>Word choice diversity</td><td>0.8 Qwen, 1.0 GPT-OSS</td></tr>
+              <tr><td>Top K</td><td>Candidate word limit</td><td>20 Qwen, 0 (disabled) GPT-OSS</td></tr>
+              <tr><td>Repetition Penalty</td><td>Prevents loops</td><td>1.05 Qwen, 1.0 GPT-OSS</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="ref-urls" class="tab-panel">
+        <div class="cmd-list">
+          <div class="cmd-item"><span class="cmd-label">Local API</span><code>http://localhost:1234/v1</code></div>
+          <div class="cmd-item"><span class="cmd-label">LM Studio</span><code>https://lmstudio.ai</code></div>
+          <div class="cmd-item"><span class="cmd-label">MCP Servers</span><code>https://github.com/modelcontextprotocol/servers</code></div>
+          <div class="cmd-item"><span class="cmd-label">GPT-OSS Docs</span><code>https://huggingface.co/openai/gpt-oss-20b</code></div>
+          <div class="cmd-item"><span class="cmd-label">n8n Self-Host</span><code>https://docs.n8n.io/hosting/</code></div>
+          <div class="cmd-item"><span class="cmd-label">LangGraph</span><code>https://docs.langchain.com/oss/python/langgraph/overview</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="container">
+    <div class="footer-logo">The Ultimate AI Stack</div>
+    <p>Synthesized from ChatGPT, Claude, and Gemini guides &bull; Built for Manuel &bull; February 2026</p>
+    <p style="margin-top:8px;opacity:0.5">Local-first. Private. Autonomous.</p>
+  </div>
+</footer>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+// ===== PARTICLES =====
+(function() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let w, h;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * w;
+      this.y = Math.random() * h;
+      this.vx = (Math.random() - 0.5) * 0.3;
+      this.vy = (Math.random() - 0.5) * 0.3;
+      this.r = Math.random() * 1.5 + 0.5;
+      this.alpha = Math.random() * 0.4 + 0.1;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < 0 || this.x > w) this.vx *= -1;
+      if (this.y < 0 || this.y > h) this.vy *= -1;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(108, 99, 255, ${this.alpha})`;
+      ctx.fill();
+    }
+  }
+
+  const count = Math.min(80, Math.floor(w * h / 15000));
+  for (let i = 0; i < count; i++) particles.push(new Particle());
+
+  function drawLines() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 150) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(108, 99, 255, ${0.08 * (1 - dist / 150)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => { p.update(); p.draw(); });
+    drawLines();
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ===== PROGRESS BAR =====
+window.addEventListener('scroll', () => {
+  const scrollTop = document.documentElement.scrollTop;
+  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = (scrollTop / scrollHeight) * 100;
+  document.getElementById('progress-bar').style.width = progress + '%';
+});
+
+// ===== SCROLL REVEAL =====
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+  revealObserver.observe(el);
+});
+
+// ===== STAT COUNTER =====
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.count);
+      let current = 0;
+      const step = Math.max(1, Math.floor(target / 40));
+      const timer = setInterval(() => {
+        current += step;
+        if (current >= target) { current = target; clearInterval(timer); }
+        el.textContent = current;
+      }, 30);
+      counterObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+// ===== FLOATING NAV =====
+const sections = document.querySelectorAll('section[id], header[id]');
+const navDots = document.querySelectorAll('.nav-dot');
+
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navDots.forEach(d => d.classList.remove('active'));
+      const dot = document.querySelector(`.nav-dot[data-section="${entry.target.id}"]`);
+      if (dot) dot.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+
+sections.forEach(s => navObserver.observe(s));
+
+navDots.forEach(dot => {
+  dot.addEventListener('click', () => {
+    haptic();
+    const target = document.getElementById(dot.dataset.section);
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// ===== BACK TO TOP =====
+const backTop = document.getElementById('backTop');
+window.addEventListener('scroll', () => {
+  backTop.classList.toggle('visible', window.scrollY > 500);
+});
+backTop.addEventListener('click', () => {
+  haptic();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ===== CONCEPT ACCORDION =====
+function toggleConcept(header) {
+  haptic();
+  const card = header.parentElement;
+  card.classList.toggle('open');
+}
+
+// ===== TABS =====
+function switchTab(e, tabId) {
+  haptic();
+  const tabHeader = e.target.closest('.tab-header');
+  tabHeader.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  const tabs = e.target.closest('.tabs');
+  tabs.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  tabs.querySelector('#' + tabId).classList.add('active');
+}
+
+// ===== COPY CODE =====
+function copyCode(btn) {
+  haptic();
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ===== CARD MOUSE TRACKING =====
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+    card.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+  });
+});
+
+// ===== HAPTIC FEEDBACK =====
+function haptic(duration = 10) {
+  if (navigator.vibrate) navigator.vibrate(duration);
+}
+
+// add haptic to all clickable elements
+document.querySelectorAll('.chip, .toc-item, .mcp-item, .agent-card, .flow-box').forEach(el => {
+  el.addEventListener('click', () => haptic());
+});
+
+// ===== ROUTING DEMO =====
+const routingInput = document.getElementById('routingInput');
+const routingResult = document.getElementById('routingResult');
+
+const routingRules = [
+  { patterns: ['code', 'refactor', 'build', 'debug', 'test', 'pr', 'commit', 'deploy', 'feature', 'function', 'bug', 'fix', 'component'], agent: 'Coder', model: 'Claude Code + Codex', color: 'var(--accent5)', reason: 'Coding task detected - routing to Claude Code for development.' },
+  { patterns: ['think', 'architect', 'design', 'plan', 'complex', 'strategy', 'decide', 'analyze', 'evaluate'], agent: 'Deep Thinker', model: 'Claude Pro API', color: 'var(--accent)', reason: 'Complex reasoning required - routing to Claude Pro.' },
+  { patterns: ['research', 'search', 'find', 'look up', 'document', 'summarize article', 'paper'], agent: 'Researcher', model: 'Gemini / GPT Pro', color: 'var(--accent4)', reason: 'Research task - routing to Gemini for deep analysis.' },
+  { patterns: ['email', 'message', 'imessage', 'text', 'reply', 'draft', 'send'], agent: 'Comms', model: 'GPT-OSS 20B (Local)', color: 'var(--accent2)', reason: 'Communication task - handled locally for FREE.' },
+  { patterns: ['brief', 'morning', 'schedule', 'calendar', 'agenda', 'news'], agent: 'Briefing Bot', model: 'GPT-OSS 20B (Local)', color: 'var(--accent2)', reason: 'Scheduling/briefing task - handled locally for FREE.' },
+  { patterns: ['post', 'social', 'tweet', 'linkedin', 'instagram', 'content'], agent: 'Social Media', model: 'GPT-OSS 20B (Local)', color: 'var(--accent2)', reason: 'Social media task - handled locally for FREE.' },
+];
+
+routingInput.addEventListener('input', () => {
+  const query = routingInput.value.toLowerCase();
+  if (query.length < 3) {
+    routingResult.innerHTML = '<span style="color:var(--text-dim)">Type a task above to see the routing decision...</span>';
+    return;
+  }
+  let matched = null;
+  for (const rule of routingRules) {
+    if (rule.patterns.some(p => query.includes(p))) { matched = rule; break; }
+  }
+  if (!matched) {
+    matched = { agent: 'Router', model: 'GPT-OSS 20B (Local)', color: 'var(--accent2)', reason: 'General task - handled locally for FREE by the Router agent.' };
+  }
+  routingResult.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${matched.color}"></span>
+      <strong style="font-size:1.1rem">${matched.agent}</strong>
+      <span style="font-size:0.8rem;color:var(--text-dim)">${matched.model}</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:0.9rem;margin:0">${matched.reason}</p>
+  `;
+});
+
+// ===== MOBILE TOC =====
+document.getElementById('mobileTocBtn').addEventListener('click', () => {
+  haptic();
+  const overview = document.getElementById('overview');
+  if (overview) overview.scrollIntoView({ behavior: 'smooth' });
+});
+
+// ===== SMOOTH STAGGER ON SCROLL =====
+document.querySelectorAll('.stagger').forEach(container => {
+  Array.from(container.children).forEach((child, i) => {
+    child.style.setProperty('--i', i);
+  });
+});
+</script>
+
+</body>
+</html>
