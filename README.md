@@ -9,7 +9,7 @@
 ![MCP](https://img.shields.io/badge/MCP-Integration-ff6b6b?style=for-the-badge&logo=link&logoColor=white)
 ![Agents](https://img.shields.io/badge/Agents-7%20Specialized-ffa726?style=for-the-badge&logo=bot&logoColor=white)
 
-**A production-ready, self-hosted AI ecosystem synthesized from three expert AI guides (ChatGPT, Claude, Gemini) into one unified architecture.**
+**A personal passion project — a production-ready, self-hosted AI ecosystem synthesized from three expert AI guides (ChatGPT, Claude, Gemini) into one unified architecture.**
 
 [📖 View the Guide](ultimate-guide.html) · [🏗️ Architecture](#-architecture) · [⚡ Quick Start](#-quick-start)
 
