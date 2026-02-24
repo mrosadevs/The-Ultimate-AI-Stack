@@ -27,6 +27,40 @@
   --radius-sm: 8px;
   --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* ===== LIGHT THEME ===== */
+[data-theme="light"] {
+  --bg: #f5f5fa;
+  --bg2: #eeeef4;
+  --bg3: #e4e4ee;
+  --surface: rgba(0,0,0,0.03);
+  --surface2: rgba(0,0,0,0.06);
+  --border: rgba(0,0,0,0.1);
+  --text: #1a1a2e;
+  --text-dim: #5a5a7a;
+  --glow: 0 0 30px rgba(108,99,255,0.15);
+  --glow2: 0 0 30px rgba(0,212,170,0.15);
+}
+[data-theme="light"] ::selection { background: var(--accent); color: #fff; }
+[data-theme="light"] ::-webkit-scrollbar-track { background: var(--bg); }
+[data-theme="light"] pre { background: #1e1e2e; color: #e6edf3; }
+[data-theme="light"] .code-block { background: #1e1e2e; }
+[data-theme="light"] .routing-input { background: #fff; }
+[data-theme="light"] .routing-result { background: #fff; }
+[data-theme="light"] .search-input { background: #fff; }
+[data-theme="light"] .timeline-dot { background: var(--bg); }
+
+/* ===== THEME TOGGLE ===== */
+.theme-toggle {
+  position: fixed; bottom: 30px; left: 30px;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--accent); color: #fff; border: none;
+  font-size: 1.3rem; cursor: pointer; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-toggle:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(108,99,255,0.6); }
+
 html { scroll-behavior: smooth; font-size: 16px; }
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -727,17 +761,6 @@ footer .footer-logo {
   font-size: 0.9rem;
 }
 
-/* mobile hamburger toc */
-.mobile-toc-btn {
-  display: none; position: fixed; bottom: 30px; left: 30px;
-  width: 48px; height: 48px; border-radius: 50%;
-  background: var(--accent2); color: #fff; border: none;
-  font-size: 1.2rem; cursor: pointer; z-index: 1000;
-  box-shadow: 0 4px 20px rgba(0,212,170,0.4);
-}
-@media (max-width: 768px) {
-  .mobile-toc-btn { display: flex; align-items: center; justify-content: center; }
-}
 </style>
 </head>
 <body>
@@ -767,8 +790,9 @@ footer .footer-logo {
 <!-- Back to Top -->
 <button class="back-top" id="backTop" aria-label="Back to top">&#8593;</button>
 
-<!-- Mobile TOC Button -->
-<button class="mobile-toc-btn" id="mobileTocBtn" aria-label="Table of contents">&#9776;</button>
+<!-- Theme Toggle -->
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode">&#9790;</button>
+
 
 <!-- ==================== HERO ==================== -->
 <header class="hero" id="hero">
@@ -1204,21 +1228,52 @@ footer .footer-logo {
 
     <div class="code-block reveal" style="margin-top:32px">
       <div class="code-header">
-        <span class="code-lang">JSON &mdash; mcp.json</span>
+        <span class="code-lang">JSON &mdash; claude_desktop_config.json (full config &mdash; copy &amp; paste ready)</span>
         <button class="code-copy" onclick="copyCode(this)">Copy</button>
       </div>
       <pre>{
-  <span class="code-str">"filesystem"</span>: {
-    <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
-    <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@anthropic/mcp-filesystem"</span>, <span class="code-str">"/home/your-user"</span>]
-  },
-  <span class="code-str">"github"</span>: {
-    <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
-    <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@github/mcp-server"</span>]
-  },
-  <span class="code-str">"discord"</span>: {
-    <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
-    <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"discord-mcp"</span>]
+  <span class="code-str">"mcpServers"</span>: {
+    <span class="code-str">"filesystem"</span>: {
+      <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+      <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@modelcontextprotocol/server-filesystem"</span>, <span class="code-str">"/home/your-user/projects"</span>]
+    },
+    <span class="code-str">"brave-search"</span>: {
+      <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+      <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@anthropic/mcp-server-brave-search"</span>],
+      <span class="code-str">"env"</span>: {
+        <span class="code-str">"BRAVE_API_KEY"</span>: <span class="code-str">"YOUR_BRAVE_API_KEY"</span>
+      }
+    },
+    <span class="code-str">"github"</span>: {
+      <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+      <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@modelcontextprotocol/server-github"</span>],
+      <span class="code-str">"env"</span>: {
+        <span class="code-str">"GITHUB_PERSONAL_ACCESS_TOKEN"</span>: <span class="code-str">"YOUR_GITHUB_TOKEN"</span>
+      }
+    },
+    <span class="code-str">"sqlite"</span>: {
+      <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+      <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@modelcontextprotocol/server-sqlite"</span>, <span class="code-str">"/path/to/your/database.db"</span>]
+    },
+    <span class="code-str">"google-calendar"</span>: {
+      <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+      <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@anthropic/mcp-server-google-calendar"</span>]
+    },
+    <span class="code-str">"gmail"</span>: {
+      <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+      <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"@anthropic/mcp-server-gmail"</span>]
+    },
+    <span class="code-str">"discord"</span>: {
+      <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+      <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"discord-mcp"</span>],
+      <span class="code-str">"env"</span>: {
+        <span class="code-str">"DISCORD_WEBHOOK_URL"</span>: <span class="code-str">"YOUR_DISCORD_WEBHOOK_URL"</span>
+      }
+    },
+    <span class="code-str">"imessage"</span>: {
+      <span class="code-str">"command"</span>: <span class="code-str">"npx"</span>,
+      <span class="code-str">"args"</span>: [<span class="code-str">"-y"</span>, <span class="code-str">"imessage-mcp"</span>]
+    }
   }
 }</pre>
     </div>
@@ -1964,11 +2019,20 @@ routingInput.addEventListener('input', () => {
   `;
 });
 
-// ===== MOBILE TOC =====
-document.getElementById('mobileTocBtn').addEventListener('click', () => {
+
+// ===== THEME TOGGLE =====
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+themeToggle.innerHTML = savedTheme === 'light' ? '&#9728;' : '&#9790;';
+
+themeToggle.addEventListener('click', () => {
   haptic();
-  const overview = document.getElementById('overview');
-  if (overview) overview.scrollIntoView({ behavior: 'smooth' });
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  themeToggle.innerHTML = next === 'light' ? '&#9728;' : '&#9790;';
 });
 
 // ===== SMOOTH STAGGER ON SCROLL =====
